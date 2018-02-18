@@ -247,3 +247,34 @@
                                                exponents-right
                                                axis-names))
       (write-integration-range axis-names))))
+
+(defun f-signature (exponents-left exponents-right)
+  (loop
+     initially (write-line "Integrate[Boole[")
+     for remaining on exponents-left
+     for coefficient-left = (car remaining)
+     for coefficient-right in exponents-right
+     for i from 1
+     for max = (max coefficient-left coefficient-right)
+     then (max max coefficient-left coefficient-right)
+     do
+       (format t
+               "~dx <= z~d < 1 + ~@*~dx &&~%"
+               coefficient-left
+               i)
+       (format t
+               "~dy <= z~d < 1 + ~@*~dy"
+               coefficient-right
+               i)
+     unless (endp (cdr remaining))
+     do (write-line " && ")
+     finally
+       (let ((upper-bound (* 10 max)))
+         (format t "], {x, 0, ~d}, {y, 0, ~:*~d}, " upper-bound)
+         (dotimes (j i)
+           (format t
+                   "{z~d, 0, ~d}~:[~;, ~]"
+                   (1+ j)
+                   upper-bound
+                   (< (1+ j) i)))
+         (write-string "]"))))
