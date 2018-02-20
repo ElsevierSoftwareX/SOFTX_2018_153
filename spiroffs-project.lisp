@@ -224,7 +224,7 @@
      finally (terpri)))
 
 (defun write-integration-range (axis-names)
-  (format t "], {x, 0, 2000}, {y, 0, 2000}, ~{{~a, 0, 2000}~^, ~}]" axis-names))
+  (format t "], {x, 0, 2000}, {y, 0, 2000}, ~{{~a, 0, 2000}~^, ~}]~%" axis-names))
 
 (defun hkm-main (inputs)
   (flet ((half (list)
@@ -246,7 +246,8 @@
       (write-compound-inequality (inequalities exponents-left
                                                exponents-right
                                                axis-names))
-      (write-integration-range axis-names))))
+      (write-integration-range axis-names)
+      (f-signature exponents-left exponents-right))))
 
 (defun f-signature (exponents-left exponents-right)
   (loop
