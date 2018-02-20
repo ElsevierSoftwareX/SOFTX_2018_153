@@ -3,9 +3,6 @@
 # '{{1, 2, 3}, {2, 3, 4}, {5, 6, 7}}' -> '(list #(1 2 3) #(2 3 4) #(5 6 7))'
 # echo '{{1, 2, 3}, {2, 3, 4}, {5, 6, 7}}' | sed -e '{s/{\(.*\)}/(list \1)/;s/},/}/g;s/{\([0-9]\+\), \([0-9]\+\), \([0-9]\)}/#(\1 \2 \3)/g;}'
 
-# NOTE: This isn't working because CCL is cutting the -e argument down the
-# middle and considering it two arguments
-
 for i in $@; do
   test "$i" -gt 0 || {
     echo "$0: Inputs are not positive integers." >&2
