@@ -66,4 +66,4 @@ algGens=(I,J)->(
 S = QQ[$(xs_commas $(($# / 2)))]
 algGens(ideal($(xs_exponents 1 $(($# / 2)) $@)), ideal($(xs_exponents $(($# / 2 + 1)) $# $@)))
 EOF
-ccl -l /home/gabriel/Desktop/spiroffs-project/spiroffs-project-generalized.lx64fsl -e "(progn (hkm-main (list $*)) (ccl:quit))" | wolfram
+ccl -l /home/gabriel/Desktop/spiroffs-project/src/spiroffs-project.lx64fsl -e "(progn (hkm-main (list $*)) (ccl:quit))" | wolfram
