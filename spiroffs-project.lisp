@@ -260,18 +260,18 @@
      then (max max coefficient-left coefficient-right)
      do
        (format t
-               "~dx <= z~d < 1 + ~@*~dx &&~%"
+               "~dx <= z~d <= 1 + ~@*~dx &&~%"
                coefficient-left
                i)
        (format t
-               "~dy <= z~d < 1 + ~@*~dy"
+               "~dy <= z~d <= 1 + ~@*~dy"
                coefficient-right
                i)
      unless (endp (cdr remaining))
      do (write-line " && ")
      finally
        (let ((upper-bound (* 10 max)))
-         (format t "], {x, 0, ~d}, {y, 0, ~:*~d}, " upper-bound)
+         (write-line "], {x, 0, 1}, {y, 0, 1}, ")
          (dotimes (j i)
            (format t
                    "{z~d, 0, ~d}~:[~;, ~]"
