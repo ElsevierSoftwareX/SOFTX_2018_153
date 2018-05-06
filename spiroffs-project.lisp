@@ -1,23 +1,26 @@
-(defun fan-order (list-a list-b)
-  (let ((fan-order (sort (mapcar #'cons list-a list-b)
-                         #'<
-                         :key (lambda (cons)
-                                (atan (cdr cons) (car cons))))))
-    (values (mapcar #'car fan-order)
-            (mapcar #'cdr fan-order))))
 
-(defun mappair (fun seq)
-  (typecase seq
-    (list
-     (let ((firsts seq)
-           (seconds (rest seq)))
-       (mapcar fun firsts seconds)))
-    (vector
-     (let ((firsts seq)
-           (seconds (make-array (1- (length seq))
-                                :displaced-to seq
-                                :displaced-index-offset 1)))
-       (map 'vector fun firsts seconds)))))
+(defun mappairn (fun list)
+  (let ((firsts list)
+        (seconds (rest list)))
+    (mapcan fun firsts seconds)))
+
+(defun determinant (vector1 vector2)
+  ;; Treats vector1 and vector2 as rows in a 2x2 matrix and finds the
+  ;; determinant.
+  (- (* (aref vector1 0) (aref vector2 1))
+     (* (aref vector1 1) (aref vector2 0))))
+
+(defun vector-scale (scalar vector)
+  (map 'vector
+       (lambda (coordinate) (* scalar coordinate))
+       vector))
+
+(defun vector+ (&rest sequences)
+  (apply #'map 'vector #'+ sequences))
+
+(defun vector= (vector-1 vector-2)
+  (and (eql (aref vector-1 0) (aref vector-2 0))
+       (eql (aref vector-1 1) (aref vector-2 1))))
 
 (defun shifts (basis-points exponents-left exponents-right)
   (flet ((shifts% (basis-point)
@@ -81,105 +84,65 @@
                      x-coefficients
                      y-coefficients
                      axis-names)))))
-    (let* ((hilbert-basis (hilbert-basis exponents-left exponents-right))
-           (shifts (shifts hilbert-basis exponents-left exponents-right)))
+    (let* ((hilbert-set (hilbert-set exponents-left exponents-right))
+           (shifts (shifts hilbert-set exponents-left exponents-right)))
       (mapcar (lambda (shift)
                 (destructuring-bind (x y &rest zs) shift
                   (inequalities% x y exponents-left exponents-right zs)))
               shifts))))
 
-(define-condition hilbert-basis-parse-error (error)
-  ((level :initarg :level
-          :type symbol
-          :reader level)
-   (expected :initarg :expected
-             :type list
-             :reader expected)
-   (datum :initarg :datum
-          :reader datum))
-  (:report (lambda (condition stream)
-             (format stream
-                     "While parsing ~s: Expected ~s but got ~s"
-                     (level condition)
-                     (expected condition)
-                     (datum condition)))))
+(defun hilbert-set (exponents-left exponents-right)
+  (delete-duplicates (mappairn #'hilbert-basis
+                               (append (list #(0 1))
+                                       (mapcar #'vector
+                                               exponents-right
+                                               exponents-left)
+                                       (list #(1 0))))
+                     :test #'vector=))
 
-(defun hilbert-basis (exponents-left exponents-right)
-  ;; The arguments are included for the future, in case I ever find out how to
-  ;; get the Hilbert basis without reading it in from another program
-  (declare (ignore exponents-left exponents-right))
-  (let ((buffer (make-array 255 :element-type 'character :fill-pointer 0)))
-    (labels ((parse-hilbert-basis (start)
-               (unless (char= #\{ (char buffer start))
-                 (error 'hilbert-basis-parse-error
-                        :level 'parse-hilbert-basis
-                        :expected '(#\{)
-                        :datum (char buffer start)))
-               (multiple-value-bind (points end) (parse-points (1+ start))
-                 (unless (char= #\} (char buffer end))
-                   (error 'hilbert-basis-parse-error
-                          :level 'parse-hilbert-basis
-                          :expected '(#\})
-                          :datum (char buffer end)))
-                 points))
-             (parse-points (start)
-               (loop
-                  with point
-                  with end
-                  do
-                    (multiple-value-setq (point end) (parse-point start))
-                  collect point into points
-                  until (char= #\} (char buffer end))
-                  unless (char= #\, (char buffer end))
-                  do
-                    (error 'hilbert-basis-parse-error
-                           :level 'parse-points
-                           :expected '(#\, #\})
-                           :datum (char buffer end))
-                  end
-                  do (setq start (1+ end))
-                  finally (return (values points end))))
-             (parse-point (start)
-               (setq start (position-if-not #'ccl:whitespacep
-                                            buffer
-                                            :start start))
-               (unless (char= #\{ (char buffer start))
-                 (error 'hilbert-basis-parse-error
-                        :level 'parse-point
-                        :expected '(#\{)
-                        :datum (char buffer start)))
-               (multiple-value-bind (x end)
-                   (read-from-string buffer t nil :start (1+ start))
-                 (unless (typep x '(integer 0 *))
-                   (error 'type-error
-                          :expected '(integer 0 *)
-                          :datum x))
-                 (unless (char= #\, (char buffer end))
-                   (error 'hilbert-basis-parse-error
-                          :level 'parse-point
-                          :expected '(#\,)
-                          :datum (char buffer (1+ end))))
-                 (multiple-value-bind (y end)
-                     (read-from-string buffer t nil :start (1+ end) :end (position #\} buffer :start (1+ end)))
-                   (unless (typep y '(integer 0 *))
-                     (error 'type-error
-                            :expected '(integer 0 *)
-                            :datum y))
-                   (unless (char= #\} (char buffer end))
-                     (error 'hilbert-basis-parse-error
-                            :level 'parse-point
-                            :expected '(#\})
-                            :datum (char buffer end)))
-                   (values (vector x y) (1+ end))))))
-      (loop       
-         do
-           (loop
-              for char = (read-char)
-              until (char= #\newline char)
-              do (vector-push char buffer))
-         until (string= "o5 = " buffer :end2 (min 5 (length buffer)))
-         do (setf (fill-pointer buffer) 0)
-         finally (return (parse-hilbert-basis 5))))))
+(defun canonicalize-initial-points (point-left point-right)
+  (flet ((ensure-coprime (point)
+           (vector-scale (/ (gcd (aref point 0)
+                                 (aref point 1)))
+                         point)))
+    (let ((point-left (ensure-coprime point-left))
+          (point-right (ensure-coprime point-right)))
+      (if (< 0 (determinant point-left point-right))
+          (values point-left point-right)
+          (values point-right point-left)))))
+
+(defun next-basis-point-guess (point)
+  ;; Given a point u, returns a point v such that (determinant u v) = 1
+  (let ((b (aref point 0))
+        (a (aref point 1)))
+    (if (zerop b)
+        (vector (/ a) 1)
+        (loop
+           for k from 1
+           for ka-1 = (1- a) then (+ a ka-1)
+           when (zerop (mod ka-1 b))
+           return (vector k (/ ka-1 b))))))
+
+(defun next-basis-point (point-left point-right)
+  (let* ((guess (next-basis-point-guess point-right))
+         (scalar (ceiling (determinant guess point-left)
+                          (determinant point-left point-right))))
+    (vector+ guess (vector-scale scalar point-right))))
+
+(defun hilbert-basis (point-left point-right)
+  (multiple-value-bind (point-left point-right)
+      (canonicalize-initial-points point-left point-right)
+    (if (vector= point-left point-right)
+        '()
+        (loop
+           with so-far = (list point-left point-right)
+           for first = (first so-far)
+           for second = (second so-far)
+           if (eql 1 (determinant first second))
+           return so-far
+           else
+           do
+             (push (next-basis-point first second) (cdr so-far))))))
 
 (defun write-inequality (inequality &optional (stream *standard-output*))
   (let ((*standard-output* stream)) 

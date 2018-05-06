@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# '{{1, 2, 3}, {2, 3, 4}, {5, 6, 7}}' -> '(list #(1 2 3) #(2 3 4) #(5 6 7))'
-# echo '{{1, 2, 3}, {2, 3, 4}, {5, 6, 7}}' | sed -e '{s/{\(.*\)}/(list \1)/;s/},/}/g;s/{\([0-9]\+\), \([0-9]\+\), \([0-9]\)}/#(\1 \2 \3)/g;}'
-
 for i in $@; do
   test "$i" -gt 0 || {
     echo "$0: Inputs are not positive integers." >&2
@@ -15,55 +12,4 @@ if [ ! $(($# % 2)) -eq 0 ]; then
   exit 1
 fi
 
-# For an argument of n, output a list consisting of x1, x2, x3, x4, ... xn
-function xs {
-  for i in $(seq 1 $1); do
-    echo x$i
-  done
-}
-
-# Generate x's as with xs, but add a comma to the end of each except the last
-function xs_commas {
-  local count="$1"
-  xs "$count" | sed -e 's/$/,/' -e '$s/,$//'
-}
-
-# Takes two numbers, plus any number of additional numbers. The first two are
-# taken as the positions of the first and last arguments to process; the
-# remaining arguments are printed as exponents of a series of variables x1 * x2
-# * x3 * x4 * ... * x(last - first + 1)
-function xs_exponents {
-  local first="$1"
-  local last="$2"
-  local count=$(($last - $first + 1))
-  # Add 2 to take into account getting rid of the first two arguments
-  shift $(($first - 1 + 2))
-  # Generate a sed pattern... using sed. The resulting pattern adds exponents
-  # and multiplication symbols to the given arguments
-  sed_pattern=$(echo $@ | sed -e 's/ /\
-/g' | sed -e '=;s_\(.*\)_s/$/^\1*/_' | sed -e 'N;s/\n/ /')
-  xs "$count" | sed -e "$sed_pattern" -e '$s/*$//'
-}
-
-# Pipes into CCL below
-M2 --stop --no-debug --silent -q << EOF |
-loadPackage "Polyhedra"
-
-expList=(I)->(flatten exponents first flatten entries gens I)
-
-algGens=(I,J)->(
-  B:=(expList(J))_(positions(expList(J),i->i!=0));
-  A:=(expList(I))_(positions(expList(J),i->i!=0));
-  L:=sort apply(A,B,(i,j)->i/j);
-  C:=flatten {0,apply(L,i->numerator i),1};
-  D:=flatten {1, apply(L,i->denominator i),0};
-  M:=matrix{C,D};
-  apply(unique flatten apply(#C-1,
-                             i->hilbertBasis(posHull submatrix(M,{i,i+1}))),
-        i->reverse flatten entries i)
-)
-
-S = QQ[$(xs_commas $(($# / 2)))]
-algGens(ideal($(xs_exponents 1 $(($# / 2)) $@)), ideal($(xs_exponents $(($# / 2 + 1)) $# $@)))
-EOF
 ccl -l /home/gabriel/Desktop/spiroffs-project/src/spiroffs-project.lx64fsl -e "(progn (hkm-main (list $*)) (ccl:quit))" | wolfram | sed -n -f /home/gabriel/Desktop/spiroffs-project/src/parse-output.sed
