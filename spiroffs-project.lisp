@@ -59,7 +59,12 @@
      collect (format nil "z~d" i)))
 
 (defun inequalities (exponents-left exponents-right axis-names)
-  (flet ((inequalities% (x-shift y-shift x-coefficients y-coefficients z-shifts)
+  (flet ((inequalities% (x-coefficients
+                         y-coefficients
+                         x-shift
+                         y-shift
+                         &rest
+                         z-shifts)
            (delete-if
             #'null
             (list*
@@ -87,8 +92,7 @@
     (let* ((hilbert-set (hilbert-set exponents-left exponents-right))
            (shifts (shifts hilbert-set exponents-left exponents-right)))
       (mapcar (lambda (shift)
-                (destructuring-bind (x y &rest zs) shift
-                  (inequalities% x y exponents-left exponents-right zs)))
+                (apply #'inequalities% exponents-left exponents-right shift))
               shifts))))
 
 (defun hilbert-set (exponents-left exponents-right)
@@ -187,7 +191,9 @@
      finally (terpri)))
 
 (defun write-integration-range (axis-names)
-  (format t "], {x, 0, 2000}, {y, 0, 2000}, ~{{~a, 0, 2000}~^, ~}]~%" axis-names))
+  (format t
+          "], {x, 0, 2000}, {y, 0, 2000}, ~{{~a, 0, 2000}~^, ~}]~%"
+          axis-names))
 
 (defun hkm-main (inputs)
   (flet ((half (list)
@@ -210,6 +216,7 @@
                                                exponents-right
                                                axis-names))
       (write-integration-range axis-names)
+      (terpri)
       (f-signature exponents-left exponents-right))))
 
 (defun f-signature (exponents-left exponents-right)
@@ -219,8 +226,7 @@
      for coefficient-left = (car remaining)
      for coefficient-right in exponents-right
      for i from 1
-     for max = (max coefficient-left coefficient-right)
-     then (max max coefficient-left coefficient-right)
+     maximizing (max coefficient-left coefficient-right) into max
      do
        (format t
                "~dx <= z~d <= 1 + ~@*~dx &&~%"
