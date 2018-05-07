@@ -1,28 +1,56 @@
 
 (defun mappairn (fun list)
+  "(mappairn fun list) => list
+
+Accepts a two-argument function FUN that returns a list, and a list LIST.
+Applies the function to each pair of adjacent elements in LIST (i.e., each
+element shows up in two pairs, one with the element before and one with the
+element after) and concatenates the results with NCONC."
   (let ((firsts list)
         (seconds (rest list)))
     (mapcan fun firsts seconds)))
 
 (defun determinant (vector1 vector2)
+  "(determinant vector1 vector2) => number
+
+Treats VECTOR1 and VECTOR2 (which should each have 2 elements) as rows in a 2x2
+matrix and finds the determinant."
   ;; Treats vector1 and vector2 as rows in a 2x2 matrix and finds the
   ;; determinant.
   (- (* (aref vector1 0) (aref vector2 1))
      (* (aref vector1 1) (aref vector2 0))))
 
 (defun vector-scale (scalar vector)
+  "(vector-scale scalar vector) => vector
+
+Multiplies each element of VECTOR by SCALAR."
   (map 'vector
        (lambda (coordinate) (* scalar coordinate))
        vector))
 
 (defun vector+ (&rest sequences)
+  "(vector+ &rest sequences) => vector
+
+Adds the corresponding elements of each sequence in SEQUENCES, and returns a
+vector containing the results."
   (apply #'map 'vector #'+ sequences))
 
 (defun vector= (vector-1 vector-2)
+  "(vector= vector-1 vector-2) => boolean
+
+Tests whether the corresponding elements of VECTOR-1 and VECTOR-2 (should each
+have 2 elements) are equal."
   (and (eql (aref vector-1 0) (aref vector-2 0))
        (eql (aref vector-1 1) (aref vector-2 1))))
 
 (defun shifts (basis-points exponents-left exponents-right)
+  "(shifts basis-points exponents-left exponents-right) => list of lists
+
+Accepts a Hilbert set BASIS-POINTS and two lists of exponents EXPONENTS-LEFT and
+EXPONENTS-RIGHT. Returns the Hilbert set augmented with the intersections of
+corresponding ideals (or, the amount by which each variable in the initial
+inequalities has to be shifted to obtain the new inequalities when finding the
+Hilbert-Kunz multiplicity)."
   (flet ((shifts% (basis-point)
            (let ((basis-left (aref basis-point 0))
                  (basis-right (aref basis-point 1)))
@@ -48,17 +76,28 @@
            (mapcar #'shifts% basis-points))))
 
 (defstruct (inequality (:constructor make-inequality (left-variable right-variable right-coefficient right-constant)))
+  "Represents a bounding inequality for the solid whose volume equals the
+Hilbert-Kunz multiplicity of a given intersection ideal."
   (left-variable "" :type string)
   (right-variable "" :type string)
   (right-coefficient 0 :type number)
   (right-constant 0 :type number))
 
 (defun make-axis-names (number)
+  "(make-axis-names number) => list of axis names
+
+Returns NUMBER names for axes beyond the x and y axis. Names will be of the form
+z1, z2, z3, etc."
   (loop
      for i from 1 to number
      collect (format nil "z~d" i)))
 
 (defun inequalities (exponents-left exponents-right axis-names)
+  "(inequalities exponents-left exponents-right axis-names) => list of inequalities
+
+Returns a list of the inequalities bounding the solid whose volume is equal to
+the Hilbert-Kunz multiplicity of the intersection algebra of the ideals with
+exponents EXPONENTS-LEFT and EXPONENTS-RIGHT."
   (flet ((inequalities% (x-coefficients
                          y-coefficients
                          x-shift
@@ -96,6 +135,10 @@
               shifts))))
 
 (defun hilbert-set (exponents-left exponents-right)
+  "(hilbert-set exponents-left exponents-right) => list of vectors
+
+Finds the Hilbert set for the division of the plane into cones corresponding to
+the given lists of ideal exponents."
   (delete-duplicates (mappairn #'hilbert-basis
                                (append (list #(0 1))
                                        (mapcar #'vector
@@ -105,6 +148,11 @@
                      :test #'vector=))
 
 (defun canonicalize-initial-points (point-left point-right)
+  "(canonicalize-initial-points point-left point-right) => point-left, point-right
+
+Ensures that the given points are suitable for use in the Hilbert basis
+algorithm. Returns two points such that the coordinates of each are relatively
+prime and (determinant point-left point-right) is greater than 0."
   (flet ((ensure-coprime (point)
            (vector-scale (/ (gcd (aref point 0)
                                  (aref point 1)))
@@ -116,7 +164,10 @@
           (values point-right point-left)))))
 
 (defun next-basis-point-guess (point)
-  ;; Given a point u, returns a point v such that (determinant u v) = 1
+  "(next-basis-point-guess point) => new-point
+
+Given POINT, returns NEW-POINT such that (determinant point new-point) equals
+1. Used as the initial \"guess\" for a new Hilbert basis point."
   (let ((b (aref point 0))
         (a (aref point 1)))
     (if (zerop b)
@@ -128,12 +179,20 @@
            return (vector k (/ ka-1 b))))))
 
 (defun next-basis-point (point-left point-right)
+  "(next-basis-point point-left point-right) => point
+
+Returns a new point in the Hilbert basis that already contains POINT-LEFT and
+POINT-RIGHT."
   (let* ((guess (next-basis-point-guess point-right))
          (scalar (ceiling (determinant guess point-left)
                           (determinant point-left point-right))))
     (vector+ guess (vector-scale scalar point-right))))
 
 (defun hilbert-basis (point-left point-right)
+  "(hilbert-basis point-left point-right) => list of points
+
+Returns the Hilbert basis of the cone delineated by rays from the origin through
+POINT-LEFT and POINT-RIGHT."
   (multiple-value-bind (point-left point-right)
       (canonicalize-initial-points point-left point-right)
     (if (vector= point-left point-right)
@@ -147,6 +206,10 @@
            else
            do
              (push (next-basis-point first second) (cdr so-far))))))
+
+;;; The following functions beginning with "write-" are all for writing the
+;;; inequalities for the Hilbert-Kunz multiplicity in a format compatible with
+;;; Mathematica.
 
 (defun write-inequality (inequality &optional (stream *standard-output*))
   (let ((*standard-output* stream)) 
@@ -196,6 +259,12 @@
           axis-names))
 
 (defun hkm-main (inputs)
+  "(hkm-main inputs) => nil
+
+Given a list of exponents of ideals (the first half of the list is assumed to be
+the exponents of one ideal and the second half those of the other), outputs
+Mathematica code to calculate the Hilbert-Kunz multiplicity and F-signature of
+the corresponding intersection algebra. Destructively modifies the given list."
   (flet ((half (list)
            (loop
               for slow on list
@@ -220,6 +289,11 @@
       (f-signature exponents-left exponents-right))))
 
 (defun f-signature (exponents-left exponents-right)
+  "(f-signature exponents-left exponents-right) => nil
+
+Prints out the inequalities bounding the solid whose volume is equal to the
+f-signature of the intersection algebra of the ideals with exponents
+EXPONENTS-LEFT and EXPONENTS-RIGHT in a format compatible with Mathematica."
   (loop
      initially (write-line "Integrate[Boole[")
      for remaining on exponents-left
