@@ -35,11 +35,12 @@
 const errorMessageN = "<span style=\"color: red\">Invalid value for n.</span>";
 // Since we only want positive integers, everything has to be digits
 const validInputPattern = /^\d+$/;
-const inputSplit = /\n/;
+const inputSplit = '\n\n';
 const hilbertKunz = document.getElementById("hilbertKunz");
 const fSignature = document.getElementById("fSignature");
 const statusDisplay = document.getElementById("statusDisplay");
 const inputArea = document.getElementById("inputArea");
+const serverUrl = "/gj/php/integral.php"
 
 function errorMessage(variable, index) {
   return "<span style=\"color: red\">Invalid value for " + variable + 
@@ -117,9 +118,9 @@ function updateIntegral() {
   if(errorMessages === '') {
     statusDisplay.innerHTML = "Loading...";
     $.get(
-        "/gj/php/integral.php?a[]=" + a.slice(0, n).join('&a[]=') + "&b[]=" + b.slice(0, n).join('&b[]='),
+        serverUrl + "?a[]=" + a.slice(0, n).join('&a[]=') + "&b[]=" + b.slice(0, n).join('&b[]='),
         data => {
-          let results = data.split('\n', 2);
+          let results = data.split(inputSplit, 2);
           let hilbertKunzValue = results[0];
           let fSignatureValue = results[1];
           hilbertKunz.innerHTML = hilbertKunzValue;
