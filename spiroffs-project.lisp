@@ -98,39 +98,33 @@ z1, z2, z3, etc."
 Returns a list of the inequalities bounding the solid whose volume is equal to
 the Hilbert-Kunz multiplicity of the intersection algebra of the ideals with
 exponents EXPONENTS-LEFT and EXPONENTS-RIGHT."
-  (flet ((inequalities% (x-coefficients
-                         y-coefficients
-                         x-shift
-                         y-shift
-                         &rest
-                         z-shifts)
-           (delete-if
-            #'null
-            (list*
-             (and (> x-shift 0)
-                  (make-inequality "x" "" 0 x-shift))
-             (and (> y-shift 0)
-                  (make-inequality "y" "" 0 y-shift))
-             (mapcan (lambda (z-shift x-coefficient y-coefficient axis-name)
-                       (list (and (> z-shift (* x-coefficient x-shift))
-                                  (make-inequality axis-name
-                                                   "x"
-                                                   x-coefficient
-                                                   (- z-shift (* x-coefficient
-                                                                 x-shift))))
-                             (and (> z-shift (* y-coefficient y-shift))
-                                  (make-inequality axis-name
-                                                   "y"
-                                                   y-coefficient
-                                                   (- z-shift (* y-coefficient
-                                                                 y-shift))))))
-                     z-shifts
-                     x-coefficients
-                     y-coefficients
-                     axis-names)))))
-    (mapcar (lambda (shift)
-              (apply #'inequalities% exponents-left exponents-right shift))
-            (shifts exponents-left exponents-right))))
+  (flet ((inequalities% (shift)
+           (destructuring-bind (x-shift y-shift &rest z-shifts) shift
+             (delete-if
+              #'null
+              (list*
+               (and (> x-shift 0)
+                    (make-inequality "x" "" 0 x-shift))
+               (and (> y-shift 0)
+                    (make-inequality "y" "" 0 y-shift))
+               (mapcan (lambda (z-shift x-coefficient y-coefficient axis-name)
+                         (list (and (> z-shift (* x-coefficient x-shift))
+                                    (make-inequality axis-name
+                                                     "x"
+                                                     x-coefficient
+                                                     (- z-shift (* x-coefficient
+                                                                   x-shift))))
+                               (and (> z-shift (* y-coefficient y-shift))
+                                    (make-inequality axis-name
+                                                     "y"
+                                                     y-coefficient
+                                                     (- z-shift (* y-coefficient
+                                                                   y-shift))))))
+                       z-shifts
+                       exponents-left
+                       exponents-right
+                       axis-names))))))
+    (mapcar #'inequalities% (shifts exponents-left exponents-right))))
 
 (defun hilbert-set (exponents-left exponents-right)
   "(hilbert-set exponents-left exponents-right) => list of vectors
