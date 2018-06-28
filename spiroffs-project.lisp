@@ -75,13 +75,32 @@ Hilbert-Kunz multiplicity)."
     (nconc (default-shifts)
            (mapcar #'shifts% (hilbert-set exponents-left exponents-right)))))
 
-(defstruct (inequality (:constructor make-inequality (left-variable right-variable right-coefficient right-constant)))
-  "Represents a bounding inequality for the solid whose volume equals the
-Hilbert-Kunz multiplicity of a given intersection ideal."
-  (left-variable "" :type string)
-  (right-variable "" :type string)
-  (right-coefficient 0 :type number)
-  (right-constant 0 :type number))
+(defclass hkm-inequality ()
+  ((left-variable :reader inequality-left-variable
+                  :type string
+                  :initarg :left-variable)
+   (right-variable :reader inequality-right-variable
+                   :type string
+                   :initarg :right-variable)
+   (right-coefficient :reader inequality-right-coefficient
+                      :type number
+                      :initarg :right-coefficient)
+   (right-constant :reader inequality-right-constant
+                   :type number
+                   :initarg :right-constant))
+  (:documentation
+   "Represents a bounding inequality for the solid whose volume equals the
+Hilbert-Kunz multiplicity of a given intersection ideal."))
+
+(defun make-inequality (left-variable
+                        right-variable
+                        right-coefficient
+                        right-constant)
+  (make-instance 'hkm-inequality
+                 :left-variable left-variable
+                 :right-variable right-variable
+                 :right-coefficient right-coefficient
+                 :right-constant right-constant))
 
 (defun make-axis-names (number)
   "(make-axis-names number) => list of axis names
