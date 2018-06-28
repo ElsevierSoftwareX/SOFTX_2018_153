@@ -162,13 +162,17 @@ Given POINT, returns NEW-POINT such that (determinant point new-point) equals
 1. Used as the initial \"guess\" for a new Hilbert basis point."
   (let ((b (aref point 0))
         (a (aref point 1)))
-    (if (zerop b)
-        (vector (/ a) 1)
-        (loop
-           for k from 1
-           for ka-1 = (1- a) then (+ a ka-1)
-           when (zerop (mod ka-1 b))
-           return (vector k (/ ka-1 b))))))
+    (cond
+      ((not (zerop b))
+       (loop
+          for k from 1
+          for ka-1 = (1- a) then (+ a ka-1)
+          when (zerop (mod ka-1 b))
+          return (vector k (/ ka-1 b))))
+      ((eql a 1)
+       #(1 1))
+      (t
+       (error "No Hilbert basis can be found.")))))
 
 (defun next-basis-point (point-left point-right)
   "(next-basis-point point-left point-right) => point
