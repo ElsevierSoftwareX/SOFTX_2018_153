@@ -226,17 +226,19 @@ POINT-LEFT and POINT-RIGHT."
        (princ (abs (inequality-right-constant inequality))))) 
     inequality))
 
+(defun write-sub-compound-inequality (first-conjunction)
+  (loop
+     initially (write-string "((")
+     for (first-disjunction . remaining-disjunctions) on first-conjunction
+     do (write-inequality first-disjunction)
+     unless (endp remaining-disjunctions)
+     do (write-string " || ")
+     finally (write-string "))")))
+
 (defun write-compound-inequality (inequalities)
   (loop       
      for (first-conjunction . remaining-conjunctions) on inequalities
-     do
-       (loop
-          initially (write-string "((")
-          for (first-disjunction . remaining-disjunctions) on first-conjunction
-          do (write-inequality first-disjunction)
-          unless (endp remaining-disjunctions)
-          do (write-string " || ")
-          finally (write-string "))"))
+     do (write-sub-compound-inequality first-conjunction)
      unless (endp remaining-conjunctions)
      do (write-line " &&")))
 
