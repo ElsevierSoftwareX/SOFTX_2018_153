@@ -1,4 +1,29 @@
 
+(defun perform-over-pairs (iteration-method function list)
+  "(perform-over-pairs iteration-method function list) => [varies]
+
+Accepts a higher-order function ITERATION-METHOD that iterates over multiple
+lists (e.g. mapcar, every, etc.), and another function FUNCTION of two
+arguments, and applies ITERATION-METHOD to FUNCTION and two lists, LIST itself
+and the cdr of LIST. E.g.,
+
+;; Add all adjacent pairs of a list
+(perform-over-pairs #'mapcar #'+ '(1 2 3))
+= (mapcar #'+ '(1 2 3) '(2 3))
+= '(3 5)
+
+;; Test whether a list is sorted or not
+(perform-over-pairs #'every #'< '(1 2 3 4 5))
+= (every #'< '(1 2 3 4 5) '(2 3 4 5))
+= T
+
+(perform-over-pairs #'every #'< '(1 2 3 4 5 1))
+= (every #'< '(1 2 3 4 5 1) '(2 3 4 5 1))
+= NIL"
+  (let ((firsts list)
+        (seconds (rest list)))
+    (funcall iteration-method function firsts seconds)))
+
 (defun mappairn (fun list)
   "(mappairn fun list) => list
 
@@ -6,9 +31,25 @@ Accepts a two-argument function FUN that returns a list, and a list LIST.
 Applies the function to each pair of adjacent elements in LIST (i.e., each
 element shows up in two pairs, one with the element before and one with the
 element after) and concatenates the results with NCONC."
-  (let ((firsts list)
-        (seconds (rest list)))
-    (mapcan fun firsts seconds)))
+  (perform-over-pairs #'mapcan fun list))
+
+(defun every-pair (pred list)
+  "(every-pair pred list) => boolean
+
+Accepts a two-argument predicate PRED and a list LIST and returns true if and
+only if the predicate returns true when called on every pair of adjacent
+elements in LIST. E.g.,
+
+(every-pair #'< '(1 2 3)) = T
+(every-pair #'< '(1 3 2)) = NIL"
+  (perform-over-pairs #'every pred list))
+
+(defun fan-order-p (list1 list2)
+  "(fan-order-p list1 list2) => boolean
+
+Tests whether two lists of integers are in fan order when taken as the x and y
+coordinates of a set of points."
+  (every-pair #'<= (mapcar #'/ list1 list2)))
 
 (defun determinant (vector1 vector2)
   "(determinant vector1 vector2) => number
@@ -354,6 +395,8 @@ the corresponding intersection algebra."
            (exponents-right (half inputs))
            (exponents-left (amputate inputs exponents-right))
            (axis-names (make-axis-names (list-length exponents-left))))
+      (unless (fan-order-p exponents-right exponents-left)
+        (error "Provided numbers not in fan order."))
       (write-inequality (inequalities exponents-left
                                       exponents-right
                                       axis-names))
