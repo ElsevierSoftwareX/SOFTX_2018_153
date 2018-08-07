@@ -293,7 +293,10 @@ the corresponding intersection algebra. Destructively modifies the given list."
               when (eql (rest last) sublist)
               do (setf (cdr last) nil)
               and return list)))
-    (let* ((exponents-right (half inputs))
+    (unless (evenp (list-length inputs))
+      (error "Odd number of arguments."))
+    (let* ((inputs (copy-list inputs))
+           (exponents-right (half inputs))
            (exponents-left (amputate inputs exponents-right))
            (axis-names (make-axis-names (list-length exponents-left))))
       (write-line "Integrate[Boole[")
@@ -304,6 +307,17 @@ the corresponding intersection algebra. Destructively modifies the given list."
       (write-integration-range axis-names)
       (terpri)
       (f-signature exponents-left exponents-right))))
+
+(defun main ()
+  (let ((program-name (first *command-line-argument-list*))
+        (arguments (rest *command-line-argument-list*)))
+    (handler-bind ((error (lambda (e)
+                            (format *error-output*
+                                    "~a: Failed with error: ~a"
+                                    program-name
+                                    e)
+                            (quit 1))))
+      (hkm-main (mapcar #'parse-integer arguments)))))
 
 (defun f-signature (exponents-left exponents-right)
   "(f-signature exponents-left exponents-right) => nil

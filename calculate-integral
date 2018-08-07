@@ -3,16 +3,4 @@
 ccl_path="ccl"
 code_path="/home/gabriel/Desktop/spiroffs-project/src/spiroffs-project.lisp"
 
-for i in $@; do
-  test "$i" -gt 0 || {
-    echo "$0: Inputs are not positive integers." >&2
-    exit 1
-  }
-done
-
-if [ ! $(($# % 2)) -eq 0 ]; then
-  echo "$0: Odd number of arguments." >&2
-  exit 1
-fi
-
-$ccl_path -l $code_path -e "(progn (hkm-main (list $*)) (ccl:quit))" | wolfram | sed -n -f /home/gabriel/Desktop/spiroffs-project/src/parse-output.sed
+$ccl_path -I hkm.image $* | wolfram | sed -n -f /home/gabriel/Desktop/spiroffs-project/src/parse-output.sed
