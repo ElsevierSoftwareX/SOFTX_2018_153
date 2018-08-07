@@ -102,6 +102,30 @@ Hilbert-Kunz multiplicity of a given intersection ideal."))
                  :right-coefficient right-coefficient
                  :right-constant right-constant))
 
+(defclass compound-hkm-inequality ()
+  ((subinequalities :reader sub-inequalities
+                    :type list
+                    :initarg :sub-inequalities)
+   (exponents-left :reader exponents-left
+                   :type list
+                   :initarg :exponents-left)
+   (exponents-right :reader exponents-right
+                    :type list
+                    :initarg :exponents-right)
+   (axis-names :reader axis-names
+               :type list
+               :initarg :axis-names)))
+
+(defun make-compound-inequality (sub-inequalities
+                                 exponents-left
+                                 exponents-right
+                                 axis-names)
+  (make-instance 'compound-hkm-inequality
+                 :sub-inequalities sub-inequalities
+                 :exponents-left exponents-left
+                 :exponents-right exponents-right
+                 :axis-names axis-names))
+
 (defun make-axis-names (number)
   "(make-axis-names number) => list of axis names
 
@@ -143,7 +167,11 @@ exponents EXPONENTS-LEFT and EXPONENTS-RIGHT."
                        exponents-left
                        exponents-right
                        axis-names))))))
-    (mapcar #'inequalities% (shifts exponents-left exponents-right))))
+    (make-compound-inequality (mapcar #'inequalities%
+                                      (shifts exponents-left exponents-right))
+                              exponents-left
+                              exponents-right
+                              axis-names)))
 
 (defun hilbert-set (exponents-left exponents-right)
   "(hilbert-set exponents-left exponents-right) => list of vectors
@@ -226,24 +254,43 @@ POINT-LEFT and POINT-RIGHT."
 ;;; inequalities for the Hilbert-Kunz multiplicity in a format compatible with
 ;;; Mathematica.
 
-(defun write-inequality (inequality &optional (stream *standard-output*))
-  (let ((*standard-output* stream)) 
-    (write-string (inequality-left-variable inequality))
-    (write-string " < ")
-    (cond
-      ((zerop (inequality-right-coefficient inequality))
-       (princ (inequality-right-constant inequality)))
-      ((zerop (inequality-right-constant inequality))
-       (princ (inequality-right-coefficient inequality))
-       (write-string (inequality-right-variable inequality)))
-      (t
-       (princ (inequality-right-coefficient inequality))
-       (write-string (inequality-right-variable inequality))
-       (write-string (if (> (inequality-right-constant inequality) 0)
-                         " + "
-                         " - "))
-       (princ (abs (inequality-right-constant inequality))))) 
-    inequality))
+(defgeneric write-inequality (inequality &optional stream))
+
+(defmethod write-inequality :around (inequality
+                                     &optional
+                                       (stream *standard-output*))
+  (declare (ignore inequality))
+  (let ((*standard-output* stream))
+    (call-next-method)))
+
+(defmethod write-inequality ((inequality hkm-inequality) &optional stream)
+  (declare (ignore stream))
+  (write-string (inequality-left-variable inequality))
+  (write-string " < ")
+  (cond
+    ((zerop (inequality-right-coefficient inequality))
+     (princ (inequality-right-constant inequality)))
+    ((zerop (inequality-right-constant inequality))
+     (princ (inequality-right-coefficient inequality))
+     (write-string (inequality-right-variable inequality)))
+    (t
+     (princ (inequality-right-coefficient inequality))
+     (write-string (inequality-right-variable inequality))
+     (write-string (if (> (inequality-right-constant inequality) 0)
+                       " + "
+                       " - "))
+     (princ (abs (inequality-right-constant inequality)))))
+  inequality)
+
+(defmethod write-inequality-to-stream (inequality stream)
+  (let ((*standard-output* stream))
+    (write-inequality inequality)))
+
+(defmethod write-inequality ((inequality compound-hkm-inequality)
+                             &optional
+                               stream)
+  (declare (ignore stream))
+  (write-compound-inequality (sub-inequalities inequality)))
 
 (defun write-sub-compound-inequality (first-conjunction)
   (loop
@@ -261,19 +308,27 @@ POINT-LEFT and POINT-RIGHT."
      unless (endp remaining-conjunctions)
      do (write-line " &&")))
 
-(defun write-top-inequality (exponents-left exponents-right axis-names)
+(defmethod write-inequality :before ((inequality compound-hkm-inequality)
+                                     &optional
+                                       stream)
+  (declare (ignore stream))
   (loop
-     initially (format t "0 <= x && 0 <= y && ")
-     for left in exponents-left
-     for right in exponents-right
-     for axis-name in axis-names
+     initially
+       (write-line "Integrate[Boole[")
+       (format t "0 <= x && 0 <= y && ")
+     for left in (exponents-left inequality)
+     for right in (exponents-right inequality)
+     for axis-name in (axis-names inequality)
      do (format t "~dx <= ~a && ~dy <= ~a && " left axis-name right axis-name)
      finally (terpri)))
 
-(defun write-integration-range (axis-names)
+(defmethod write-inequality :after ((inequality compound-hkm-inequality)
+                                    &optional
+                                      stream)
+  (declare (ignore stream))
   (format t
           "], {x, 0, 2000}, {y, 0, 2000}, ~{{~a, 0, 2000}~^, ~}]~%"
-          axis-names))
+          (axis-names inequality)))
 
 (defun hkm-main (inputs)
   "(hkm-main inputs) => nil
@@ -299,12 +354,9 @@ the corresponding intersection algebra."
            (exponents-right (half inputs))
            (exponents-left (amputate inputs exponents-right))
            (axis-names (make-axis-names (list-length exponents-left))))
-      (write-line "Integrate[Boole[")
-      (write-top-inequality exponents-left exponents-right axis-names)
-      (write-compound-inequality (inequalities exponents-left
-                                               exponents-right
-                                               axis-names))
-      (write-integration-range axis-names)
+      (write-inequality (inequalities exponents-left
+                                      exponents-right
+                                      axis-names))
       (terpri)
       (f-signature exponents-left exponents-right))))
 
