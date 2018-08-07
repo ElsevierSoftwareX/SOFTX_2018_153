@@ -281,7 +281,7 @@ POINT-LEFT and POINT-RIGHT."
 Given a list of exponents of ideals (the first half of the list is assumed to be
 the exponents of one ideal and the second half those of the other), outputs
 Mathematica code to calculate the Hilbert-Kunz multiplicity and F-signature of
-the corresponding intersection algebra. Destructively modifies the given list."
+the corresponding intersection algebra."
   (flet ((half (list)
            (loop
               for slow on list
