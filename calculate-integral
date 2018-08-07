@@ -1,6 +1,14 @@
 #!/bin/bash
 
-ccl_path="ccl"
-code_path="/home/gabriel/Desktop/spiroffs-project/src/spiroffs-project.lisp"
+#ccl=ccl/dx86cl64
+ccl=ccl
 
-$ccl_path -I hkm.image $* | wolfram | sed -n -f /home/gabriel/Desktop/spiroffs-project/src/parse-output.sed
+#wolfram=/Applications/Mathematica.app/Contents/MacOS/MathKernel
+wolfram=/usr/local/bin/MathKernel
+
+cd $(dirname "${BASH_SOURCE[0]}")
+
+$ccl -I hkm.image $*\
+  | $wolfram\
+  | sed -n -f src/parse-output.sed\
+  | sed -e '1s/^/Hilbert-Kunz Multiplicity	= /' -e '2s/^/F-Signature			= /'
