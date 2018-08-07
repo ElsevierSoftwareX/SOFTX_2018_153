@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#kernel_path=/Applications/Mathematica.app/Contents/MacOS/MathKernel
+kernel_path=/usr/local/bin/MathKernel
+
+test -f $kernel_path || {
+    echo "$0: Error: Mathematica kernel not found.">&2
+    exit 1
+}
+
+cd $(dirname "${BASH_SOURCE[0]}")
+
+test -f src/spiroffs-project.lisp || {
+    echo "$0: Source code not found. Cannot compile." >&2
+    exit 1
+}
+
+#ccl=ccl/dx86cl64
+ccl=ccl
+
+$ccl -l src/spiroffs-project.lisp \
+  -e '(save-application "hkm.image" :toplevel-function #'\''main)' \
+  && echo Done. || { echo "$0: Setup failed." >&2; exit 1; }
