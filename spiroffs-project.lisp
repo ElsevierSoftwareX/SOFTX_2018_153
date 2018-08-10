@@ -1,3 +1,4 @@
+;;;; Copyright (c) 2018, Gabriel Johnson. All rights reserved.
 
 (defun perform-over-pairs (iteration-method function list)
   "(perform-over-pairs iteration-method function list) => [varies]

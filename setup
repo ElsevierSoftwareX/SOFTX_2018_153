@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Copyright (c) 2018, Gabriel Johnson. All rights reserved.
+
 #kernel_path=/Applications/Mathematica.app/Contents/MacOS/MathKernel
 kernel_path=/usr/local/bin/MathKernel
 
