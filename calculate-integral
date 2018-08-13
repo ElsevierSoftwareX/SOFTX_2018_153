@@ -15,4 +15,4 @@ if [ ! $(($# % 2)) -eq 0 ]; then
   exit 1
 fi
 
-$ccl_path -l $code_path -e "(progn (hkm-main (list $*)) (ccl:quit))" # | wolfram | sed -n -f /home/gabriel/Desktop/spiroffs-project/src/parse-output.sed
+$ccl_path -l $code_path -e "(progn (hkm-main (list $*)) (ccl:quit))" | wolfram | sed -n -f /home/gabriel/Desktop/spiroffs-project/src/parse-output.sed
