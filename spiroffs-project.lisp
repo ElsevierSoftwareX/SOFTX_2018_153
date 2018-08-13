@@ -43,7 +43,7 @@ have 2 elements) are equal."
   (and (eql (aref vector-1 0) (aref vector-2 0))
        (eql (aref vector-1 1) (aref vector-2 1))))
 
-(defun shifts (basis-points exponents-left exponents-right)
+(defun shifts (exponents-left exponents-right)
   "(shifts basis-points exponents-left exponents-right) => list of lists
 
 Accepts a Hilbert set BASIS-POINTS and two lists of exponents EXPONENTS-LEFT and
@@ -73,7 +73,7 @@ Hilbert-Kunz multiplicity)."
                         (aref as-vector i) 1)
                 collect (coerce as-vector 'list)))))
     (nconc (default-shifts)
-           (mapcar #'shifts% basis-points))))
+           (mapcar #'shifts% (hilbert-set exponents-left exponents-right)))))
 
 (defstruct (inequality (:constructor make-inequality (left-variable right-variable right-coefficient right-constant)))
   "Represents a bounding inequality for the solid whose volume equals the
@@ -128,11 +128,9 @@ exponents EXPONENTS-LEFT and EXPONENTS-RIGHT."
                      x-coefficients
                      y-coefficients
                      axis-names)))))
-    (let* ((hilbert-set (hilbert-set exponents-left exponents-right))
-           (shifts (shifts hilbert-set exponents-left exponents-right)))
-      (mapcar (lambda (shift)
-                (apply #'inequalities% exponents-left exponents-right shift))
-              shifts))))
+    (mapcar (lambda (shift)
+              (apply #'inequalities% exponents-left exponents-right shift))
+            (shifts exponents-left exponents-right))))
 
 (defun hilbert-set (exponents-left exponents-right)
   "(hilbert-set exponents-left exponents-right) => list of vectors
