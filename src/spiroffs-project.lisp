@@ -392,6 +392,8 @@ the corresponding intersection algebra."
               and return list)))
     (unless (evenp (list-length inputs))
       (error "Odd number of arguments."))
+    (unless (every (lambda (n) (< 0 n)) inputs)
+      (error "Non-positive arguments provided."))
     (let* ((inputs (copy-list inputs))
            (exponents-right (half inputs))
            (exponents-left (amputate inputs exponents-right))
