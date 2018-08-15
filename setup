@@ -2,8 +2,28 @@
 
 # Copyright (c) 2018, Gabriel Johnson. All rights reserved.
 
-#kernel_path=/Applications/Mathematica.app/Contents/MacOS/MathKernel
-kernel_path=/usr/local/bin/MathKernel
+case $(uname) in
+    Linux)
+        kernel_path=/usr/local/bin/MathKernel
+        ccl=ccl/lx86cl64
+        ;;
+    CYGWIN_NT-*) # Windows + Cygwin
+        kernel_path=("/cygdrive/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
+        ccl=ccl/wx86cl64
+        ;;
+    MINGW*_NT-*) # Windows + Git Bash
+        kernel_path=("/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
+        ccl=ccl/wx86cl64
+        ;;
+    Darwin) # Mac OS X
+        kernel_path=/Applications/Mathematica.app/Contents/MacOS/MathKernel
+        ccl=ccl/dx86cl64
+        ;;
+    *)
+        echo "$0: Error: Unsupported operating system.">&2
+        exit 1
+        ;;
+esac
 
 test -f "$kernel_path" || {
     echo "$0: Warning: Mathematica kernel not found.">&2
@@ -17,9 +37,6 @@ test -f src/spiroffs-project.lisp || {
     echo "$0: Source code not found. Cannot compile." >&2
     exit 1
 }
-
-#ccl=ccl/dx86cl64
-ccl=ccl
 
 $ccl -l src/spiroffs-project.lisp \
   -e '(save-application "hkm.image" :toplevel-function #'\''main)' \
