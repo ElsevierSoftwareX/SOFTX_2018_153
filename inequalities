@@ -8,3 +8,5 @@ ccl=ccl/dx86cl64
 cd $(dirname "${BASH_SOURCE[0]}")
 
 $ccl -I hkm.image $*
+
+exit $?

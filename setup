@@ -5,9 +5,10 @@
 #kernel_path=/Applications/Mathematica.app/Contents/MacOS/MathKernel
 kernel_path=/usr/local/bin/MathKernel
 
-test -f $kernel_path || {
-    echo "$0: Error: Mathematica kernel not found.">&2
-    exit 1
+test -f "$kernel_path" || {
+    echo "$0: Warning: Mathematica kernel not found.">&2
+    echo "Numerical values for the Hilbert-Kunz multiplicity and F-signature"\
+         "cannot be calculated." >&2
 }
 
 cd $(dirname "${BASH_SOURCE[0]}")

@@ -7,6 +7,10 @@ ccl=ccl
 
 #wolfram=/Applications/Mathematica.app/Contents/MacOS/MathKernel
 wolfram=/usr/local/bin/MathKernel
+test -f "$wolfram" || {
+    echo "$0: Error: Mathematica kernel not found.">&2
+    exit 1
+}
 
 cd $(dirname "${BASH_SOURCE[0]}")
 
@@ -14,3 +18,5 @@ $ccl -I hkm.image $*\
   | $wolfram\
   | sed -n -f src/parse-output.sed\
   | sed -e '1s/^/Hilbert-Kunz Multiplicity	= /' -e '2s/^/F-Signature			= /'
+
+exit ${PIPESTATUS[0]}
