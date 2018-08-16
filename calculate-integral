@@ -32,7 +32,7 @@ test -f "$wolfram" || {
 
 cd $(dirname "${BASH_SOURCE[0]}")
 
-$ccl -I hkm.image $*\
+"$ccl" -I hkm.image $*\
   | "$wolfram" -noprompt\
   | sed -e '1s/^/Hilbert-Kunz Multiplicity	= /' -e '2s/^/F-Signature			= /'
 

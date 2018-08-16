@@ -38,6 +38,6 @@ test -f src/spiroffs-project.lisp || {
     exit 1
 }
 
-$ccl -l src/spiroffs-project.lisp \
+"$ccl" -l src/spiroffs-project.lisp \
   -e '(save-application "hkm.image" :toplevel-function #'\''main)' \
   && echo Done. || { echo "$0: Setup failed." >&2; exit 1; }

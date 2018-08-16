@@ -23,6 +23,6 @@ esac
 
 cd $(dirname "${BASH_SOURCE[0]}")
 
-$ccl -I hkm.image $*
+"$ccl" -I hkm.image $*
 
 exit $?
