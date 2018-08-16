@@ -8,7 +8,7 @@ case $(uname) in
         ccl=ccl/lx86cl64
         ;;
     CYGWIN_NT-[[:digit:]]*.[[:digit:]]*)
-        wolfram="$(cygpath 'C:\Program Files\Wolfram Research\Mathematica\11.3\MathKernel')"
+        wolfram=("/cygdrive/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
         ccl=ccl/wx86cl64
         ;;
     Darwin)
