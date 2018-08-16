@@ -11,6 +11,10 @@ case $(uname) in
         wolfram=("/cygdrive/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
         ccl=ccl/wx86cl64
         ;;
+    MINGW*_NT-*) # Windows + Git Bash
+        wolfram=("/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
+        ccl=ccl/wx86cl64
+        ;;
     Darwin) # Mac OS X
         wolfram=/Applications/Mathematica.app/Contents/MacOS/MathKernel
         ccl=ccl/dx86cl64
