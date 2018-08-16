@@ -7,7 +7,7 @@ case $(uname) in
         wolfram=/usr/local/bin/MathKernel
         ccl=ccl/lx86cl64
         ;;
-    CYGWIN_NT-[[:digit:]]*.[[:digit:]]*)
+    CYGWIN_NT-*)
         wolfram=("/cygdrive/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
         ccl=ccl/wx86cl64
         ;;
