@@ -7,11 +7,11 @@ case $(uname) in
         wolfram=/usr/local/bin/MathKernel
         ccl=ccl/lx86cl64
         ;;
-    CYGWIN_NT-*)
+    CYGWIN_NT-*) # Windows + Cygwin
         wolfram=("/cygdrive/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
         ccl=ccl/wx86cl64
         ;;
-    Darwin)
+    Darwin) # Mac OS X
         wolfram=/Applications/Mathematica.app/Contents/MacOS/MathKernel
         ccl=ccl/dx86cl64
         ;;
