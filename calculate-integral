@@ -15,8 +15,7 @@ test -f "$wolfram" || {
 cd $(dirname "${BASH_SOURCE[0]}")
 
 $ccl -I hkm.image $*\
-  | $wolfram\
-  | sed -n -f src/parse-output.sed\
+  | "$wolfram" -noprompt\
   | sed -e '1s/^/Hilbert-Kunz Multiplicity	= /' -e '2s/^/F-Signature			= /'
 
 exit ${PIPESTATUS[0]}
