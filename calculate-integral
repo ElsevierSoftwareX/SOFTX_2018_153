@@ -2,6 +2,19 @@
 
 # Copyright (c) 2018, Gabriel Johnson. All rights reserved.
 
+if [ $# -eq 0 ]; then
+    echo "$0: Error: No arguments provided.">&2
+    cat >&2 <<EOF
+Usage: $0 [a1..an] [b1..bn]
+where a1..an and b1..bn should be two lists of positive integers separated by
+spaces. There is no need to add a separator between the two lists.
+
+The two lists should be in fan order, i.e. the quotients a1/b1, a2/b2, ...,
+an/bn should be ordered from least to greatest.
+EOF
+    exit 1
+fi
+
 cd $(dirname "${BASH_SOURCE[0]}")
 
 ccl="$(src/ccl-name)"
