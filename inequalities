@@ -2,26 +2,14 @@
 
 # Copyright (c) 2018, Gabriel Johnson. All rights reserved.
 
-case $(uname) in
-    Linux)
-        ccl=ccl/lx86cl64
-        ;;
-    CYGWIN_NT-*) # Windows + Cygwin
-        ccl=ccl/wx86cl64
-        ;;
-    MINGW*_NT-*) # Windows + Git Bash
-        ccl=ccl/wx86cl64
-        ;;
-    Darwin) # Mac OS X
-        ccl=ccl/dx86cl64
-        ;;
-    *)
-        echo "$0: Error: Unsupported operating system.">&2
-        exit 1
-        ;;
-esac
-
 cd $(dirname "${BASH_SOURCE[0]}")
+
+ccl="$(src/ccl-name)"
+
+if [ ! $? -eq 0 ]; then
+    echo "$0: fatal: No compatible CCL version found.">&2
+    exit 1
+fi
 
 "$ccl" -I hkm.image $*
 

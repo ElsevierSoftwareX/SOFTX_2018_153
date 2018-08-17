@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Copyright (c) 2018, Gabriel Johnson. All rights reserved.
+
+case $(uname -m) in
+    i686|i386)
+        architecture=''
+        ;;
+    x86_64)
+        architecture=64
+        ;;
+    *)
+        echo "$0: Error: Unknown processor type.">&2
+        exit 1
+        ;;
+esac
+
+case $(uname) in
+    Linux)
+        os=l
+        ;;
+    CYGWIN_NT-*|MINGW*_NT-*) # Windows + Cygwin or Git Bash
+        os=w
+        ;;
+    Darwin) # Mac OS X
+        os=d
+        ;;
+    *)
+        echo "$0: Error: Unsupported operating system.">&2
+        exit 1
+        ;;
+esac
+
+echo ccl/${os}x86cl${architecture}

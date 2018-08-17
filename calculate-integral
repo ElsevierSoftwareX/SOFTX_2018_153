@@ -2,35 +2,26 @@
 
 # Copyright (c) 2018, Gabriel Johnson. All rights reserved.
 
-case $(uname) in
-    Linux)
-        wolfram=/usr/local/bin/MathKernel
-        ccl=ccl/lx86cl64
-        ;;
-    CYGWIN_NT-*) # Windows + Cygwin
-        wolfram=("/cygdrive/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
-        ccl=ccl/wx86cl64
-        ;;
-    MINGW*_NT-*) # Windows + Git Bash
-        wolfram=("/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
-        ccl=ccl/wx86cl64
-        ;;
-    Darwin) # Mac OS X
-        wolfram=/Applications/Mathematica.app/Contents/MacOS/MathKernel
-        ccl=ccl/dx86cl64
-        ;;
-    *)
-        echo "$0: Error: Unsupported operating system.">&2
-        exit 1
-        ;;
-esac
+cd $(dirname "${BASH_SOURCE[0]}")
+
+ccl="$(src/ccl-name)"
+
+if [ ! $? -eq 0 ]; then
+    echo "$0: fatal: No compatible CCL version found.">&2
+    exit 1
+fi
+
+wolfram="$(src/wolfram-path)"
+
+if [ ! $? -eq 0 ]; then
+    echo "$0: fatal: Cannot determine where to find Mathematica.">&2
+    exit 1
+fi
 
 test -f "$wolfram" || {
     echo "$0: Error: Mathematica kernel not found.">&2
     exit 1
 }
-
-cd $(dirname "${BASH_SOURCE[0]}")
 
 "$ccl" -I hkm.image $*\
   | "$wolfram" -noprompt\

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Copyright (c) 2018, Gabriel Johnson. All rights reserved.
+
+case $(uname) in
+    Linux)
+        wolfram=/usr/local/bin/MathKernel
+        ;;
+    CYGWIN_NT-*) # Windows + Cygwin
+        wolfram=("/cygdrive/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
+        ;;
+    MINGW*_NT-*) # Windows + Git Bash
+        wolfram=("/c/Program Files/Wolfram Research/Mathematica"/*/wolfram)
+        ;;
+    Darwin) # Mac OS X
+        wolfram=/Applications/Mathematica.app/Contents/MacOS/MathKernel
+        ;;
+    *)
+        echo "$0: Error: Unsupported operating system.">&2
+        exit 1
+        ;;
+esac
+
+echo "$wolfram"
