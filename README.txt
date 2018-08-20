@@ -32,8 +32,13 @@ to actually calculate concrete values.
 To start, you need to have Clozure Common Lisp (the interpreter for the
 programming language used in this project) in the program root directory.
 
+Unless you downloaded the source code directly from Gitlab, it should already
+come with Clozure, and you can skip the next few paragraphs. If you did get it
+from Gitlab, then read on to see how to install Clozure, or tell the program
+where to locate an existing installation.
+
 If you are a programmer with very good taste in programming languages and
-already have Clozure installed somewhere else, then feel free to replace the
+already have Clozure installed somewhere else, then you can replace the
 ccl-name script under the src directory with your own script that outputs the
 path to your installation, as described below in section 4.
 
