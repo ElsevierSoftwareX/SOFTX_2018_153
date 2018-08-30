@@ -15,10 +15,11 @@ This is a program written for mathematical research--specifically that of Dr.
 Sandra Spiroff at the University of Mississippi--that calculates the
 Hilbert-Kunz multiplicity and F-signature for a given intersection algebra.
 
-This is something of a maiden voyage for me, so I apologize for failing to
-follow usual coding practices in some respects. In particular, there's a chance
-you might have to edit some of the scripts in it get it to work. I'll be working
-on polishing it more in future versions. Sorry for the inconvenience.
+For details on the mathematics behind the calculations, see the preprint,
+"Computing the invariants of intersection algebras of principal monomial ideals"
+by F. Enescu and S. Spiroff, available on Spiroff's website:
+
+http://home.olemiss.edu/~spiroff/
 
 
 2. Setting up
@@ -26,30 +27,30 @@ on polishing it more in future versions. Sorry for the inconvenience.
 This program assumes that you have either Mac OS X, Linux, or Windows with
 Cygwin or Git Bash, as well as Mathematica. If you don't have Mathematica, then
 you can still use the program to generate the Mathematica code that would
-calculate the Hilbert-Kunz multiplicity and F-signature, but you won't be able
-to actually calculate concrete values.
+calculate the Hilbert-Kunz multiplicity and F-signature. However, you won't be
+able to actually calculate concrete values.
 
 To start, you need to have Clozure Common Lisp (the interpreter for the
 programming language used in this project) in the program root directory.
 
-Unless you downloaded the source code directly from Gitlab, it should already
-come with Clozure, and you can skip the next few paragraphs. If you did get it
-from Gitlab, then read on to see how to install Clozure, or tell the program
-where to locate an existing installation.
+Unless you downloaded the source code directly from Gitlab, the package should
+already come with Clozure, and you can skip the next few paragraphs (up to "Once
+you have Clozure in place..."). If you did download it from Gitlab, then read on
+to see how to install Clozure or tell the program where to locate an existing
+installation.
 
-If you are a programmer with very good taste in programming languages and
-already have Clozure installed somewhere else, then you can replace the
-ccl-name script under the src directory with your own script that outputs the
-path to your installation, as described below in section 4.
+If you use Lisp and already have Clozure installed somewhere else, then you can
+replace the ccl-name script under the src directory with your own script that
+outputs the path to your installation, as described below in section 4.
 
-If not, you can get Clozure Common Lisp from:
+If not, you can download Clozure Common Lisp from:
 https://ccl.clozure.com/download.html
 
 When you extract the files from the tarball/zip file, the result might be either
 a directory called something like "ccl-1.11.5-linuxx86" (possibly with a
 different version number and/or OS name), or just a directory called "ccl". What
 you want is for the directory called just "ccl" to be in the root directory of
-this program. If you got the longer version, then "ccl" should be inside that
+this program. If you have the longer version, then "ccl" should be inside that
 directory.
 
 Once you have Clozure in place, you can compile the code from the terminal by
@@ -73,20 +74,20 @@ found."
 
 To run the program, open a terminal, cd to the program root directory, and enter
 
-./calculate-integral [a1 a2 ... an] [b1 b2 ... bn]
+./calculate-integral a1 a2 ... an b1 b2 ... bn
 
 where each a1 ... an and b1 ... bn should be a positive integer. The numbers
 should be separated by spaces. The numbers will be divided into two lists, but
 there is no need to give any kind of indicator of the boundary between them; the
-list of all the inputs will be split down the middle automatically. Each of
-these lists is taken respectively to be the exponents of the generators of an
-ideal of a polynomial ring.
+list of all the inputs will be split down the middle automatically. Each of the
+resulting lists is then taken respectively to be the exponents of the generators
+of a principal ideal of a polynomial ring.
 
 The exponents should be in fan order. This means that the quotients a1/b1,
-a2/b2, ..., an/bn should be ordered from least to greatest. Geometrically
-speaking, if you take each pair of exponents as a point in the first quadrant of
-the coordinate plane, as (b1, a1), (b2, a2), ..., (bn, an), then they should all
-be ordered counterclockwise starting from the positive x axis.
+a2/b2, ..., an/bn should be ordered from greatest to least. Geometrically
+speaking, if you take each pair of exponents as a point in the first quadrant
+of the coordinate plane, as (b1, a1), (b2, a2), ..., (bn, an), then they should
+all be ordered clockwise starting from the positive y axis.
 
 If any of these conditions is violated, then the program should terminate with
 an error message. Otherwise, it outputs the Hilbert-Kunz multiplicity and
@@ -97,11 +98,10 @@ multiplicity and F-signature. However, we've found that starting at around six
 or eight inputs, the amount of time Mathematica takes to calculate the values
 varies wildly depending on how naturally complex the given intersection algebra
 is, often taking as long as several hours on a normal computer. If you are not
-willing to wait that long (or risk your computer freezing), or if you just don't
-have Mathematica, then you can see the Mathematica code without calculating the
-final value by entering
+willing to wait that long, or if you just don't have Mathematica, then you can
+see the Mathematica code without calculating the final value by entering
 
-./inequalities [a1 a2 ... an] [b1 b2 ... bn]
+./inequalities a1 a2 ... an b1 b2 ... bn
 
 The same rules as above apply for what inputs are valid.
 
@@ -109,8 +109,9 @@ With this, you can, for example, run the code on a supercomputer to obtain
 results that you wouldn't be able to on a normal computer, or 3D print the
 solids whose volumes give the Hilbert-Kunz multiplicity and F-signature.
 
-The inequality-generating part of the program has finished quickly for all
-inputs tested so far, so this should pretty much always be safe.
+The inequality-generating part of the program has finished almost
+instantaneously for all inputs tested so far, so you can reasonably expect to
+see output in a short amount of time.
 
 Examples:
 
@@ -144,7 +145,7 @@ Integrate[Boole[
 
 # --- Incorrect usages ---
 
-$ ./calculate-integral 2 3 5 2  # not in fan order because 5/2 > 2/3
+$ ./calculate-integral 2 3 5 2  # not in fan order because 2/5 < 3/2
 ccl/lx86cl64: Failed with error: Provided numbers not in fan order.
 
 $ ./calculate-integral 5 2 3
@@ -222,33 +223,28 @@ probably the most beginner-friendly.
 The Lisp portion of the program is complete on its own and can be used as a
 library.
 
-But this is where I made what was probably my biggest breach of standard
-practice: I didn't put the code in a separate package, create an ASDF system, or
-use conditional compilation or libraries to make the code
-implementation-independent.
+However, note that the code as written is not in a separate package, no ASDF
+system was created, and no conditional compilation or libraries were used to
+make the code implementation-independent.
 
 My reasons for doing this were:
 
-- The primary audience for this program is extremely niche, to say the least; it
-is not likely to attract a large number of programmers looking to work on it.
-Further, it is likely that many of the users of this program are not very
-computer savvy. Hence I priorized being able to give the user very specific
-instructions on how to set up and run the program rather than giving many
-options of implementations.
+- The primary audience for this program is pure mathematicians, and it is
+likely that many of these users are not very computer savvy.  Hence I
+prioritized being able to give the user highly specific instructions on how to
+set up and run the program rather than giving many options of implementations.
 
 - Using ASDF and Quicklisp to download external libraries seemed like more of a
 cost than a benefit. Considering the audience of this project, the user likely
 would not have their own fully furnished Lisp installation to begin with. Thus
 on top of Lisp itself, I would need to have them install ASDF and Quicklisp as
 well. This just adds extra steps and takes up extra disk space for a user who
-would likely never use them for anything else. It also makes the coding more
-complicated for me, as I would have to learn a new library's methods of
-retrieving command line arguments, exiting the program, and generating image
-files rather than using the functions that come with my implementation. Also,
-for the compilation process, I would have to write code not just to generate the
-image file, but also to make sure that ASDF and Quicklisp are installed.
-Foregoing ASDF and Quicklisp spares the user an extra download and makes the
-coding simpler.
+would likely never use them for anything else. Also, for the compilation
+process, I would have to write code not just to generate the image file, but
+also to make sure that ASDF and Quicklisp are installed, and this just creates
+more possible points of failure without doing much for the ease of usage or
+quality of the code. Foregoing ASDF and Quicklisp spares the user an extra
+download and makes the coding simpler.
 
 - Considering that all the code fits into a single file, creating an ASDF system
 seems like overkill.
@@ -259,5 +255,5 @@ who might find this inconvenient.
 
 Probably the easiest thing to do right now would be to copy the source code file
 into your own project (possibly deleting the function #'main, since it uses
-symbols from the CCL package) and just adding a defpackage and in-package form
-to the top of the file.
+symbols from the Clozure-specific CCL package) and just add a defpackage and
+in-package form to the top of the file.
